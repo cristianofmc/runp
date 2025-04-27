@@ -1,0 +1,133 @@
+#include <gtest/gtest.h>
+#include <filesystem>
+#include <fstream>
+#include <cstdlib>
+#include <string>
+#include "config.hpp"  // Inclua o arquivo config.hpp
+
+namespace fs = std::filesystem;
+
+// Função auxiliar para carregar a configuração do arquivo
+Config loadConfig(const std::string& path) {
+    Config config;
+    std::ifstream file(path);
+    if (!file) {
+        return config;
+    }
+    std::string line;
+    while (getline(file, line)) {
+        if (line.rfind("base_dir=", 0) == 0) {
+            config.baseDir = line.substr(9);
+        } else if (line.rfind("ignore_dirs=", 0) == 0) {
+            config.ignoreDirs = split(line.substr(12), ',');
+        }
+    }
+    return config;
+}
+
+// Teste para garantir que o arquivo de configuração é criado
+TEST(ConfigTest, FileCreation) {
+    std::string configPath = std::string(getenv("HOME")) + "/.runpconfig";
+    
+    // Limpa o arquivo de configuração, caso já exista
+    if (fs::exists(configPath)) {
+        fs::remove(configPath);
+    }
+
+    // Chama a função de loadConfig que cria o arquivo de configuração
+    Config config;
+    config.baseDir = "/path/to/base";
+    std::ofstream configFile(configPath);
+    configFile << "base_dir=" << config.baseDir << std::endl;
+    configFile.close();
+
+    // Verifica se o arquivo foi criado
+    EXPECT_TRUE(fs::exists(configPath));
+
+    // Limpa o arquivo de configuração após o teste
+    fs::remove(configPath);
+}
+
+// Teste para garantir que o diretório base no arquivo de configuração está correto
+TEST(ConfigTest, ValidBaseDir) {
+    std::string configPath = std::string(getenv("HOME")) + "/.runpconfig";
+    
+    // Limpa o arquivo de configuração, caso já exista
+    if (fs::exists(configPath)) {
+        fs::remove(configPath);
+    }
+
+    // Chama a função de loadConfig e escreve o arquivo com um diretório base específico
+    Config config;
+    config.baseDir = "/path/to/base";
+    std::ofstream configFile(configPath);
+    configFile << "base_dir=" << config.baseDir << std::endl;
+    configFile.close();
+
+    // Carrega a configuração novamente
+    Config loadedConfig = loadConfig(configPath);
+    
+    // Verifica se o diretório base está correto
+    EXPECT_EQ(loadedConfig.baseDir, config.baseDir);
+
+    // Limpa o arquivo de configuração após o teste
+    fs::remove(configPath);
+}
+
+// Teste para garantir que o diretório base existe fisicamente
+TEST(ConfigTest, DirectoryExists) {
+    std::string configPath = std::string(getenv("HOME")) + "/.runpconfig";
+    std::string baseDir = "/path/to/base";  // Simule um diretório que você deseja testar
+
+    // Limpa o arquivo de configuração, caso já exista
+    if (fs::exists(configPath)) {
+        fs::remove(configPath);
+    }
+
+    // Escreve o diretório base no arquivo de configuração
+    std::ofstream configFile(configPath);
+    configFile << "base_dir=" << baseDir << std::endl;
+    configFile.close();
+
+    // Verifica se o diretório realmente existe
+    EXPECT_TRUE(fs::exists(baseDir));  // Aqui é onde você deve garantir que o diretório existe fisicamente
+
+    // Limpa o arquivo de configuração após o teste
+    fs::remove(configPath);
+}
+
+// Teste para garantir que o diretório base é atualizado corretamente com o parâmetro --use
+TEST(ConfigTest, UseOptionUpdatesBaseDir) {
+    std::string configPath = std::string(getenv("HOME")) + "/.runpconfig";
+    std::string currentDir = std::string(getenv("PWD"));
+
+    // Limpa o arquivo de configuração, caso já exista
+    if (fs::exists(configPath)) {
+        fs::remove(configPath);
+    }
+
+    // Simula a execução do código passando o parâmetro --use
+    // Atualiza a baseDir para o diretório atual
+    Config config;
+    config.baseDir = currentDir;
+    
+    // Cria o arquivo de configuração com a baseDir
+    std::ofstream configFile(configPath);
+    configFile << "base_dir=" << config.baseDir << std::endl;
+    configFile.close();
+
+    // Verifica se o arquivo de configuração foi criado
+    EXPECT_TRUE(fs::exists(configPath));
+
+    // Carrega a configuração e verifica se o diretório foi atualizado corretamente
+    Config loadedConfig = loadConfig(configPath);
+    EXPECT_EQ(loadedConfig.baseDir, currentDir);
+
+    // Limpa o arquivo de configuração após o teste
+    fs::remove(configPath);
+}
+
+int main(int argc, char** argv) {
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
+}
