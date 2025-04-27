@@ -46,7 +46,9 @@ bool isIgnored(const std::string& name, const std::vector<std::string>& ignoreLi
     return false;
 }
 
-int main(int argc, char* argv[]) {
+
+// Não defina main quando estiver rodando os testes
+int main(int argc, char** argv) {
     std::string configPath = std::string(getenv("HOME")) + "/.runpconfig";
     Config config = loadConfig(configPath);
 

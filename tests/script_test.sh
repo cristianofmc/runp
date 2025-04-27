@@ -1,39 +1,76 @@
 #!/usr/bin/env bats
 
-@test "should update base_dir with --use option" {
+setup() {
     config_path="$HOME/.runpconfig"
+    custom_dir="$HOME/custom_dir"
+    old_dir="$HOME/old_dir"
+    backup_config="$config_path.bak"
 
-    # Faz backup do arquivo de configuração original, se existir
+    mkdir -p "$custom_dir"
+    mkdir -p "$old_dir"
+
+    # Faz backup do config se existir
     if [ -f "$config_path" ]; then
-        cp "$config_path" "$config_path.bak"
+        cp "$config_path" "$backup_config"
+    fi
+}
+
+teardown() {
+    # Restaura o config original se backup existir
+    if [ -f "$backup_config" ]; then
+        mv "$backup_config" "$config_path"
+    else
+        rm -f "$config_path"
     fi
 
-    # Limpa o arquivo de configuração para o teste
+    # Limpa diretórios de teste
+    rm -rf "$custom_dir" "$old_dir"
+}
+
+@test "A1: should create config file and set base_dir to current directory" {
     rm -f "$config_path"
 
-    # Executa o comando runp com --use e verifica a saída
     run runp --use
-    echo "Comando runp executado com código de saída $?"
+    [ "$status" -eq 0 ]
+    [ -f "$config_path" ]
+    [ "$(grep 'base_dir=' "$config_path" | cut -d'=' -f2)" = "$(pwd)" ]
+}
 
-    # Verifica se o arquivo de configuração foi criado
-    if [ -f "$config_path" ]; then
-        echo "Arquivo de configuração criado"
-    else
-        echo "Falha: arquivo de configuração não foi criado"
-    fi
+@test "A2: should manually specify a directory without --use" {
+    rm -f "$config_path"
 
-    # Verifica se o diretório base foi atualizado corretamente
-    config_base_dir=$(grep "base_dir=" "$config_path" | cut -d'=' -f2)
-    echo "Diretório base no arquivo de configuração: $config_base_dir"
+    run runp "$custom_dir"
+    [ "$status" -eq 0 ]
+    # Aqui não mudamos o diretório real do processo bash, apenas garantimos que o runp foi bem-sucedido
+}
 
-    if [ "$config_base_dir" == "$(pwd)" ]; then
-        echo "Base dir está correto"
-    else
-        echo "Falha: Base dir não corresponde ao diretório atual"
-    fi
+@test "A3: should not create config file when running runp without --use" {
+    rm -f "$config_path"
 
-    # Restaura o arquivo de configuração original
-    if [ -f "$config_path.bak" ]; then
-        mv "$config_path.bak" "$config_path"
-    fi
+    # Manda ENTER vazio para o runp
+    echo "" | runp
+    status=$?
+
+    [ "$status" -eq 0 ]
+    [ ! -f "$config_path" ]
+}
+
+@test "B1: should overwrite base_dir correctly when using --use" {
+    echo "base_dir=$old_dir" > "$config_path"
+
+    run runp --use
+    [ "$status" -eq 0 ]
+    [ "$(grep 'base_dir=' "$config_path" | cut -d'=' -f2)" = "$(pwd)" ]
+}
+
+@test "B2: should allow running specifying a directory" {
+    run runp "$custom_dir"
+    [ "$status" -eq 0 ]
+}
+
+@test "C1: should show help information when running runp --help" {
+    run runp --help
+    [ "$status" -eq 0 ]
+    echo "$output" | grep -q "Usage"
+    echo "$output" | grep -q -- "--use"
 }

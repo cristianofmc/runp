@@ -5,11 +5,11 @@ all:
 
 install: all
 	install -Dm755 runp-bin $(BIN_DIR)/runp-bin
-	install -Dm755 scripts/runp $(BIN_DIR)/runp
+	install -Dm755 scripts/runp.sh $(BIN_DIR)/runp.sh
 
 uninstall:
 	rm -f $(BIN_DIR)/runp-bin
-	rm -f $(BIN_DIR)/runp
+	rm -f $(BIN_DIR)/runp.sh
 
 clean:
 	rm -f runp-bin
