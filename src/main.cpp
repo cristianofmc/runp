@@ -12,15 +12,12 @@ namespace fs = std::filesystem;
 //-----------------------------------------------------------------------------
 // Helpers
 //-----------------------------------------------------------------------------
-
-// Garante que o arquivo de configuração exista (mesmo que vazio)
 void ensureConfigFile(const std::string& path) {
     if (!fs::exists(path)) {
         std::ofstream(path).close();
     }
 }
 
-// Grava apenas os campos não vazios de Config de volta no arquivo
 void saveSettings(const std::string& path, const Config& s) {
     std::ofstream f(path, std::ios::trunc);
     if (!f) {
@@ -54,14 +51,11 @@ void displayHelp() {
         << "  runp <subdir>      Print path to <subdir>\n";
 }
 
-
-// Se baseDir estiver vazio, pede ao usuário
 void promptBaseDir(Config& s) {
     std::cout << "Base directory not set. Enter base directory: ";
     std::cin >> s.baseDir;
 }
 
-// Lista todas as subpastas não ignoradas
 void listSubdirs(const Config& s) {
     for (auto& e : fs::directory_iterator(s.baseDir)) {
         if (!e.is_directory()) continue;
@@ -74,7 +68,6 @@ void listSubdirs(const Config& s) {
     }
 }
 
-// Imprime o caminho completo de uma subpasta
 void showSubdirPath(const std::string& name, const Config& s) {
     fs::path p = fs::path(s.baseDir) / name;
     if (fs::is_directory(p)) {
@@ -114,7 +107,6 @@ int handleExclude(int argc, char** argv, Config& s, const std::string& cfgPath) 
         return 1;
     }
     std::string dirToIgnore = argv[2];
-    // evita duplicados
     if (std::find(s.ignoreDirs.begin(), s.ignoreDirs.end(), dirToIgnore) == s.ignoreDirs.end()) {
         s.ignoreDirs.push_back(dirToIgnore);
         std::cout << "Ignoring directory: " << dirToIgnore << "\n";
@@ -130,26 +122,20 @@ int handleExclude(int argc, char** argv, Config& s, const std::string& cfgPath) 
 //-----------------------------------------------------------------------------
 
 int main(int argc, char** argv) {
-    // 1) caminho do config
     std::string cfgPath = std::string(std::getenv("HOME")) + "/.runpconfig";
 
-    // 2) garante existência
     ensureConfigFile(cfgPath);
 
-    // 3) carrega raw e aplica em settings
     auto raw = loadConfig(cfgPath);
     Config settings;
     settings.apply(raw);
 
-    // 4) registra comandos
     std::map<std::string,Handler> handlers = {
         {"--help", handleHelp},
         {"--use",  handleUse},
         {"--exclude", handleExclude}
-        // para adicionar outro comando: {"--xyz", handleXyz}
     };
 
-    // 5) se veio opção conhecida, despacha e sai
     if (argc > 1) {
         auto it = handlers.find(argv[1]);
         if (it != handlers.end()) {
@@ -157,22 +143,17 @@ int main(int argc, char** argv) {
         }
     }
 
-    // 6) fluxo normal:
-    // 6a) se baseDir vazio, prompt + salvar
     if (settings.baseDir.empty()) {
         promptBaseDir(settings);
         saveSettings(cfgPath, settings);
     }
 
-    // 6b) sem args: listar
     if (argc == 1) {
         listSubdirs(settings);
     }
-    // 6c) um arg: mudar diretório para algum dos diretórios da lista
     else if (argc == 2) {
         showSubdirPath(argv[1], settings);
     }
-    // 6d) uso inválido
     else {
         std::cerr << "Usage: runp [options] [directory]\n";
         return 1;

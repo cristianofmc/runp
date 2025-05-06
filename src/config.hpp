@@ -13,7 +13,6 @@ namespace ConfigKeys {
     constexpr char base_dir[]    = "base_dir";
     constexpr char ignore_dirs[] = "ignore_dirs";
     constexpr char version_key[] = "version";
-    // Add new keys here as needed
 }
 
 //-----------------------------------------------------------------------------
@@ -37,7 +36,6 @@ struct Config {
     std::vector<std::string> ignoreDirs;
     std::string             version;
 
-    // Apply a map of raw settings into this struct
     void apply(const std::map<std::string, std::string>& m) {
         for (const auto& kv : m) {
             const auto& key = kv.first;
@@ -52,7 +50,6 @@ struct Config {
             else if (key == ConfigKeys::version_key) {
                 version = val;
             }
-            // add more keys here in the same pattern
         }
     }
 };
