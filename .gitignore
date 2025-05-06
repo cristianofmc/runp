@@ -1,0 +1,32 @@
+# Compiled binary
+runp
+
+# FUSE filesystem files
+.fuse*
+tests/.fuse*
+
+# IDE files
+.vscode/
+.idea/
+*.iml
+.project
+.cproject
+.settings/
+*.launch
+nbproject/
+
+# Build artifacts (adjust if needed)
+build/
+CMakeFiles/
+cmake_install.cmake
+
+# Object files and dependencies
+*.o
+*.d
+
+# Temporary files
+*.swp
+*~
+core
+*.log
+*.stackdump

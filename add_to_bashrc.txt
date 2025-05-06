@@ -1,0 +1,45 @@
+runp() {
+  local path_info
+  path_info=($(_runp_setup))
+  local BIN_PATH="${path_info[0]}"
+  local EXECUTABLE_NAME="${path_info[1]}"
+  local options=("--use" "--exclude" "--help")
+  local is_option=false
+
+  for opt in "${options[@]}"; do
+    if [[ "$1" == "$opt" ]]; then
+      is_option=true
+      break
+    fi
+  done
+
+  if [ -n "$1" ] && ! "$is_option"; then
+    # Se houver um argumento e não for uma das opções do programa, assume que é um destino para cd
+    cd "$("$BIN_PATH/$EXECUTABLE_NAME" "$1")"
+  else
+    # Caso contrário (sem argumento ou com uma opção), executa o programa original
+    echo "Executando o programa $EXECUTABLE_NAME original com argumentos: $@"
+    "$BIN_PATH/$EXECUTABLE_NAME" "$@"
+  fi
+}
+
+_runp_complete() {
+  local path_info
+  path_info=($(_runp_setup))
+  local BIN_PATH="${path_info[0]}"
+  local EXECUTABLE_NAME="${path_info[1]}"
+  local cur prev words cword subdirs
+
+  _init_completion -s || return
+
+  cur="${COMP_WORDS[COMP_CWORD]}"
+  prev="${COMP_WORDS[COMP_CWORD-1]}"
+  words=("${COMP_WORDS[@]}")
+  cword="$COMP_CWORD"
+
+  if [[ "$prev" == "runp" ]]; then
+    subdirs=$("$BIN_PATH/$EXECUTABLE_NAME")
+    COMPREPLY=($(compgen -W "$subdirs" -- "$cur"))
+  fi
+}
+complete -F _runp_complete runp
