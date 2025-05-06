@@ -2,7 +2,7 @@
 
 setup() {
     config_path="$HOME/.runpconfig"
-    custom_dir="$HOME/test_runp_dir" # Use um diretório específico para testes
+    custom_dir="$HOME/test_runp_dir"
     old_dir="$HOME/old_dir"
     backup_config="$config_path.bak"
 
@@ -10,24 +10,22 @@ setup() {
     mkdir -p "$custom_dir/subdir2"
     mkdir -p "$old_dir"
 
-    # Define um base_dir padrão para os testes
+
     echo "base_dir=$custom_dir" > "$config_path"
 
-    # Faz backup do config se existir
+
     if [ -f "$config_path" ]; then
         cp "$config_path" "$backup_config"
     fi
 }
 
 teardown() {
-    # Restaura o config original se backup existir
     if [ -f "$backup_config" ]; then
         mv "$backup_config" "$config_path"
     else
         rm -f "$config_path"
     fi
 
-    # Limpa diretórios de teste
     rm -rf "$custom_dir" "$old_dir"
 }
 
@@ -57,22 +55,18 @@ teardown() {
 }
 
 @test "B2: should run runp alone, get a subdirectory, and then run runp with that subdirectory" {
-    # Garante que o base_dir esteja configurado para um diretório de teste
     echo "base_dir=$custom_dir" > "$config_path"
 
-    # Roda runp sem argumentos e pega a saída
     run runp
     [ "$status" -eq 0 ]
-    output_lines=($(echo "$output" | grep -v "Executando")) # Remove a linha de debug
-    [ "${#output_lines[@]}" -gt 0 ] # Garante que há pelo menos uma linha de saída
+    output_lines=($(echo "$output" | grep -v "Executando"))
+    [ "${#output_lines[@]}" -gt 0 ]
 
     first_subdir="${output_lines[0]}"
 
-    # Roda runp com o primeiro subdiretório da saída anterior
     run runp "$first_subdir"
     [ "$status" -eq 0 ]
 
-    # Verifica se a saída termina com o nome do subdiretório
     [[ "$output" == *"$first_subdir" ]]
 }
 
@@ -91,7 +85,7 @@ teardown() {
     [ "$status" -eq 0 ]
     [ "$(grep 'ignore_dirs=' "$config_path" | cut -d'=' -f2)" = "subdir1" ]
 
-    run runp # Listar diretórios deve omitir subdir1
+    run runp
     [ "$status" -eq 0 ]
     [[ "$output" != *"subdir1"* ]]
 }
@@ -105,7 +99,7 @@ teardown() {
     [ "$status" -eq 0 ]
     [ "$(grep 'ignore_dirs=' "$config_path" | cut -d'=' -f2)" = "subdir1,subdir2" ]
 
-    run runp # Listar diretórios deve omitir subdir1 e subdir2
+    run runp
     [ "$status" -eq 0 ]
     [[ "$output" != *"subdir1"* ]]
     [[ "$output" != *"subdir2"* ]]
