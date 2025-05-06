@@ -20,7 +20,7 @@ To compile `runp`, open your terminal in the project directory and run the follo
 
 ### Manually add the content of the following file to your `~/.bashrc` file:
 
-You can find the content to add here: [add_to_bashrc.txt](YOUR_RAW_GITHUB_URL/add_to_bashrc.txt)
+You can find the content to add here: [add_to_bashrc.txt](add_to_bashrc.txt)
 
 after adding run the command `source ~/.bashrc`
 
