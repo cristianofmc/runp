@@ -16,8 +16,7 @@ This project is written in C++ and requires a C++ compiler (like g++) and the `f
 
 To compile `runp`, open your terminal in the project directory and run the following command:
 
-```make
-sudo make install```
+`make` and `sudo make install`
 
 ### Manually add the content of the following file to your `~/.bashrc` file:
 
