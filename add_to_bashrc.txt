@@ -1,5 +1,9 @@
 # Add this code to your .bashrc file, it is needed to make cd and tab work with the 'runp' command
 
+_runp_setup() {
+    echo "/usr/local/bin runp"
+}
+
 runp() {
   local path_info
   path_info=($(_runp_setup))

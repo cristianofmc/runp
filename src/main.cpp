@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <map>
 #include <functional>
+#include <algorithm>
 #include "config.hpp"
 
 namespace fs = std::filesystem;
